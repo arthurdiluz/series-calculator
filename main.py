@@ -4,18 +4,14 @@ import re
 
 
 class Teste:
-    x = sp.symbols("x")
+    n = sp.symbols("n")
     infinity = sp.oo
 
     def integral(self, funcao: str):
+
         funcao = funcao.replace('e', str(e))
-        print("Função:", funcao)  #
-
-        res_integral = sp.integrate(funcao, (self.x, 1, self.infinity))
-        print("Integral:", res_integral)  #
-
-        res_limite = sp.limit(res_integral, self.x, self.infinity)
-        print("Limite: ", res_limite)  #
+        res_integral = sp.integrate(funcao, (self.n, 1, self.infinity))
+        res_limite = sp.limit(res_integral, self.n, self.infinity)
 
         if res_limite != self.infinity:
             print("Convergente")
@@ -26,8 +22,8 @@ class Teste:
         an = an.replace('e', str(e))
         bn = bn.replace('e', str(e))
 
-        limite_an = sp.limit(an, self.x, self.infinity)
-        limite_bn = sp.limit(bn, self.x, self.infinity)
+        limite_an = sp.limit(an, self.n, self.infinity)
+        limite_bn = sp.limit(bn, self.n, self.infinity)
         print(limite_an)  #
         print(limite_bn)  #
 
@@ -38,22 +34,44 @@ class Teste:
                 print("An diverge")
 
     def limite_comparacao(self, an: str, bn: str):
+
         an = an.replace('e', str(e))
         bn = bn.replace('e', str(e))
-
         funcao = F"({an})/({bn})"
-        limite_funcao = sp.limit(funcao, self.x, self.infinity)
-        limite_bn = sp.limit(bn, self.x, self.infinity)
         resposta = []
+        print(funcao)  #
 
-        if limite_funcao > 1:
+        limite_funcao = sp.limit(funcao, self.n, self.infinity)
+        print("Limite função:", limite_funcao)  #
+
+        if limite_funcao > 0:
             resposta.append("As funções tem o mesmo comportamento")
-            if limite_bn == 0:
-                resposta.append(" e ambas convergem")
-            else:
-                resposta.append(" e ambas divergem")
         else:
-            resposta.append("As funções não possuem o mesmo comportamento")
+            print("As funções não possuem o mesmo comportamento")
+            return
+
+        if bn == '1':
+            is_especifico = self.identificar_serie(an)
+        else:
+            is_especifico = self.identificar_serie(bn)
+
+        if bool(is_especifico):
+            resposta.append(F"e ambas {is_especifico}")
+            for resp in resposta:
+                print(resp, end='')
+            return
+        else:
+            print("moiô")  #
+
+        # GENÉRICO
+
+        limite_bn = sp.limit(bn, self.n, self.infinity)
+        print("Limite bn:", limite_bn)  #
+
+        if limite_bn == 0:
+            resposta.append(" e ambas convergem")
+        else:
+            resposta.append(" e ambas divergem")
 
         for resp in resposta:
             print(resp, end='')
@@ -62,6 +80,66 @@ class Teste:
         an = an.replace('e', str(e))
         bn = bn.replace('e', str(e))
         pass
+
+    def identificar_serie(self, funcao) -> str:
+
+        def is_hiper_harmonica(regex: list) -> str:
+            if regex:
+                print("Regex:", regex)
+                p = regex[0]
+                if '/' in p:
+                    p = re.findall(r"\d+", p)
+                    p = float(float(p[0]) / float(p[1]))
+                else:
+                    p = int(p[0])
+
+                if p > 1:
+                    return "convergem"
+                else:
+                    return "divergem"
+            else:
+                return ""
+
+        def is_geometrico(regex: list) -> str:
+            if regex:
+
+                print("Regex:", regex)
+                p = regex[0]
+
+                if '/' in p:
+                    p = re.findall(r"\d+", p)
+                    p = float(float(p[0]) / float(p[1]))
+                else:
+                    p = int(p[0])
+
+                if p > 1:
+                    return "convergem"
+                else:
+                    return "divergem"
+            else:
+                return ""
+
+        # MAIN
+
+        try:
+            hiper_harmonica = is_hiper_harmonica(
+                (re.findall(r"\d+\/?\d*", (re.findall(r"\*{2}\s?\(?\d+\/?\d?\){2,}", funcao))[-1]))[0]
+            )
+            if hiper_harmonica:
+                return hiper_harmonica
+        except IndexError:
+            pass
+
+        try:
+            geometrico = is_geometrico(
+                (re.findall(r"\d+\/?\d*", (re.findall(r"\(\s*\d+\s*\/?\s*\d*\s*\)?\s*\*{2}\s*n{1}", funcao))[0]))[0]
+            )
+            if geometrico:
+                return geometrico
+        except IndexError:
+            pass
+
+        return ""
 
 
 if __name__ == '__main__':
