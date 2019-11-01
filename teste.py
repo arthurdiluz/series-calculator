@@ -18,7 +18,6 @@ class Teste:
             print("Divergente")
 
     def comparacao(self, an: str, bn: str):
-
         an = an.replace('e', str(e))
         bn = bn.replace('e', str(e))
         res_an = eval(an.replace('n', '2'))
@@ -84,46 +83,17 @@ class Teste:
         an1 = an1.replace('e', str(e))
 
         if not ('!' in an) and not('!' in an1):
-            is_especifico = self.identificar_serie(F"{an1}/{an}")
+            res_limite = sp.limit(F"{an1}/{an}", self.n, self.infinity)
 
-            if is_especifico:
-                print(is_especifico)
-                return
+            if res_limite > 1:
+                print("A série diverge")
+            elif res_limite < 1:
+                print("A série converge")
             else:
-                res_limite = sp.limit(F"{an1}/{an}", self.n, self.infinity)
-                print("Limite:", res_limite)
-
-                if res_limite > 1:
-                    print("A série diverge")
-                elif res_limite < 1:
-                    print("A série converge")
-                else:
-                    print("A série é inconclusiva")
-                return
+                print("A série é inconclusiva")
+            return
         else:
-            #an+1
-            for i in range(len(an1)):
-                if an1[i] == '!' and an1[i-1] == ')':
-                    print('O Sistema não é capaz de resolver fatorial com expressões.')
-                    return
-            else:
-                an1 = an1.replace(
-                    re.findall("\d+!", an1)[0],
-                    str(factorial(int((re.findall(r"\d+", (re.findall(r"\d+!", an1))[0]))[0])))
-                )
-
-            # an
-            for i in range(len(an)):
-                if an[i] == '!' and an[i-1] == ')':
-                    print('O Sistema não é capaz de resolver fatorial com expressões.')
-                    return
-            else:
-                an = an.replace(
-                    re.findall("\d+!", an)[0],
-                    str(factorial(int((re.findall(r"\d+", (re.findall(r"\d+!", an))[0]))[0])))
-                )
-
-            limite = sp.limit(F"{an1}/{an}", self.n, self.infinity)
+            limite = sp.limit(F"{self.resolver_fatorial(an1)}/{self.resolver_fatorial(an)}", self.n, self.infinity)
 
             if limite < 1:
                 print("A série converge")
@@ -132,60 +102,20 @@ class Teste:
             else:
                 print("A série é inconclusiva")
 
+    def resolver_fatorial(self, funcao: str):
+        for i in range(len(funcao)):
+            if funcao[i] == '!' and funcao[i - 1] == ')':
+                print('O Sistema não é capaz de resolver fatorial com expressões.')
+                return None
+        else:
+            return funcao.replace(
+                re.findall("\d+!", funcao)[0],
+                str(factorial(int((re.findall(r"\d+", (re.findall(r"\d+!", funcao))[0]))[0])))
+            )
+
     def identificar_serie(self, funcao) -> str:
-
-        def is_harmonica(regex: list) -> str:
-            if regex:
-                print("Regex harmonica:", regex)
-                p = regex[0]
-                if '/' in p:
-                    p = re.findall(r"\d+", p)
-                    p = float(float(p[0]) / float(p[1]))
-                else:
-                    p = int(p[0])
-
-                if p > 1:
-                    return "convergem"
-                elif p < 1:
-                    return "divergem"
-                else:
-                    return F"divergem porque a função é hiperarmônica"
-            else:
-                return ""
-
-        def is_geometrico(regex: list) -> str:
-            if regex:
-
-                print("Regex geometrico:", regex)
-                p = regex[0]
-
-                if '/' in p:
-                    p = re.findall(r"\d+", p)
-                    p = float(float(p[0]) / float(p[1]))
-                else:
-                    p = int(p[0])
-
-                if p > 1:
-                    return "convergem"
-                else:
-                    return "divergem"
-            else:
-                return ""
-
-        def is_telescopica(regex: list) -> str:
-            print("Regex0 teles:", regex[0])
-            print("Regex1 teles:", regex[1])
-
-            if regex[0] or regex[1]:
-                print(F"Regex: {regex} => {type(regex[0])} e {type(regex[1])}")
-                return "convergem"
-            else:
-                return ""
-
-        # MAIN
-
         try:
-            harmonica = is_harmonica(
+            harmonica = self.is_harmonica(
                 (re.findall(r"\d+\/?\d*", (re.findall(r"\*{2}\s?\(?\d+\/?\d?\){2,}", funcao))[-1]))[0]
             )
             if harmonica:
@@ -194,7 +124,7 @@ class Teste:
             pass
 
         try:
-            geometrico = is_geometrico(
+            geometrico = self.is_geometrico(
                 (re.findall(r"\d+\/?\d*", (re.findall(r"\(\s*\d+\s*\/?\s*\d*\s*\)?\s*\*{2}\s*n{1}", funcao))[0]))[0]
             )
             if geometrico:
@@ -203,12 +133,10 @@ class Teste:
             pass
 
         try:
-            telescopica = is_telescopica([
+            telescopica = self.is_telescopica([
                 (re.findall(r"1\s?\/\s?\(\s?n\s?\*\s?\(\s?n\s?\+\s?1?\s?\)\s?\)", funcao))[0],
                 (re.findall(r"ln\(\s?\(\s?n\s?\+\s?1\s?\)\s?\/\s?1\s?\)", funcao))[0]
             ])
-
-            print("T:", telescopica, "bool:", bool(telescopica))
 
             if telescopica:
                 return telescopica
@@ -216,3 +144,46 @@ class Teste:
             pass
 
         return ""
+
+    def is_harmonica(self, regex: list) -> str:
+        if regex:
+            p = regex[0]
+            if '/' in p:
+                p = re.findall(r"\d+", p)
+                p = float(float(p[0]) / float(p[1]))
+            else:
+                p = int(p[0])
+
+            if p > 1:
+                return "convergem"
+            elif p < 1:
+                return "divergem"
+            else:
+                return F"divergem porque a função é hiperarmônica"
+        else:
+            return ""
+
+    def is_geometrico(self, regex: list) -> str:
+        if regex:
+            p = regex[0]
+
+            if '/' in p:
+                p = re.findall(r"\d+", p)
+                p = float(float(p[0]) / float(p[1]))
+            else:
+                p = int(p[0])
+
+            if p > 1:
+                return "convergem"
+            else:
+                return "divergem"
+        else:
+            return ""
+
+    def is_telescopica(self, regex: list) -> str:
+
+        if regex[0] or regex[1]:
+            print(F"Regex: {regex} => {type(regex[0])} e {type(regex[1])}")
+            return "convergem"
+        else:
+            return ""
