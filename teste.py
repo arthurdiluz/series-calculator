@@ -1,4 +1,5 @@
-from math import factorial, e
+from math import factorial, e, log, log10
+import math
 import sympy as sp
 import re
 
@@ -20,22 +21,26 @@ class Teste:
     def comparacao(self, an: str, bn: str):
         an = an.replace('e', str(e))
         bn = bn.replace('e', str(e))
-        res_an = eval(an.replace('n', '2'))
-        res_bn = eval(bn.replace('n', '2'))
+        val_n = input("Insira o valor de n: ") or '3'
         is_especifico = self.identificar_serie(bn)
 
-        if bool(is_especifico) and (is_especifico == "convergem") and (res_an <= res_bn):
-            print("an converge")
-            return
-        elif bool(is_especifico) and (is_especifico == "divergem") and (res_bn <= res_an):
-            print("an diverge")
-            return
-        else:
-            pass
+        res_an = eval(an.replace('n', val_n))
+        res_bn = eval(bn.replace('n', val_n))
+
+        if is_especifico:
+            if (is_especifico == "convergem") and (res_an <= res_bn):
+                print("an converge")
+                return
+            elif (is_especifico == "divergem") and (res_bn <= res_an):
+                print("an diverge")
+                return
+            else:
+                print("A série não satisfaz nenhuma condição")
+                return
 
         limite_bn = sp.limit(bn, self.n, self.infinity)
 
-        if (res_an <= res_bn) and limite_bn == 0:
+        if (res_an <= res_bn) and (limite_bn == 0):
             print("An converge")
         elif (limite_bn != 0) and (res_bn <= res_an):
             print("An diverge")
@@ -79,8 +84,8 @@ class Teste:
             print(resp, end='')
 
     def razao(self, an: str, an1: str):
-        an = an.replace('e', str(e))
-        an1 = an1.replace('e', str(e))
+        an = an.replace('e', str(math.e))
+        an1 = an1.replace('e', str(math.e))
 
         if not ('!' in an) and not('!' in an1):
             res_limite = sp.limit(F"{an1}/{an}", self.n, self.infinity)
@@ -93,7 +98,11 @@ class Teste:
                 print("A série é inconclusiva")
             return
         else:
-            limite = sp.limit(F"{self.resolver_fatorial(an1)}/{self.resolver_fatorial(an)}", self.n, self.infinity)
+            try:
+                limite = sp.limit(F"{self.resolver_fatorial(an1)}/{self.resolver_fatorial(an)}", self.n, self.infinity)
+            except ValueError as e:
+                print("Erro:", e)
+                return
 
             if limite < 1:
                 print("A série converge")
@@ -104,23 +113,33 @@ class Teste:
 
     def resolver_fatorial(self, funcao: str):
         for i in range(len(funcao)):
-            if funcao[i] == '!' and funcao[i - 1] == ')':
-                print('O Sistema não é capaz de resolver fatorial com expressões.')
-                return None
+            if funcao[i] == '!' and (funcao[i - 1] == ')' or funcao[i - 1] == 'n'):
+                raise ValueError("O sistema não é capaz de resolver fatorial com expressões.")
         else:
-            return funcao.replace(
+            valor = funcao.replace(
                 re.findall("\d+!", funcao)[0],
                 str(factorial(int((re.findall(r"\d+", (re.findall(r"\d+!", funcao))[0]))[0])))
             )
 
+            return valor
+
     def identificar_serie(self, funcao) -> str:
         try:
-            harmonica = self.is_harmonica(
-                (re.findall(r"\d+\/?\d*", (re.findall(r"\*{2}\s?\(?\d+\/?\d?\){2,}", funcao))[-1]))[0]
+            hiperarmonica = self.is_hiperarmonica(
+                re.findall(r"\d+\/?\d*", (re.findall(r"\*{2}\s?\(?\d+\/?\d?\){2,}", funcao))[-1])
             )
+
+            if hiperarmonica:
+                return hiperarmonica
+        except IndexError:
+            pass
+
+        try:
+            harmonica = self.is_harmonica(re.findall(r"1\s?\/\s?n", funcao))
+
             if harmonica:
                 return harmonica
-        except IndexError:
+        except IndexError as e:
             pass
 
         try:
@@ -135,7 +154,7 @@ class Teste:
         try:
             telescopica = self.is_telescopica([
                 (re.findall(r"1\s?\/\s?\(\s?n\s?\*\s?\(\s?n\s?\+\s?1?\s?\)\s?\)", funcao))[0],
-                (re.findall(r"ln\(\s?\(\s?n\s?\+\s?1\s?\)\s?\/\s?1\s?\)", funcao))[0]
+                (re.findall(r"log\(\s?\(\s?n\s?\+\s?1\s?\)\s?\/\s?1\s?\)", funcao))[0]
             ])
 
             if telescopica:
@@ -145,7 +164,7 @@ class Teste:
 
         return ""
 
-    def is_harmonica(self, regex: list) -> str:
+    def is_hiperarmonica(self, regex: list) -> str:
         if regex:
             p = regex[0]
             if '/' in p:
@@ -159,7 +178,11 @@ class Teste:
             elif p < 1:
                 return "divergem"
             else:
-                return F"divergem porque a função é hiperarmônica"
+                return ""
+
+    def is_harmonica(self, regex: list) -> str:
+        if regex:
+            return "divergem"
         else:
             return ""
 
@@ -181,9 +204,7 @@ class Teste:
             return ""
 
     def is_telescopica(self, regex: list) -> str:
-
         if regex[0] or regex[1]:
-            print(F"Regex: {regex} => {type(regex[0])} e {type(regex[1])}")
             return "convergem"
         else:
             return ""
