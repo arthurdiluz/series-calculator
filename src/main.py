@@ -1,4 +1,4 @@
-from teste import Teste
+from src.classes.teste import Teste
 
 if __name__ == '__main__':
     print("[1] Teste da Integral")
@@ -28,3 +28,5 @@ if __name__ == '__main__':
     except SyntaxError as e:
         for erro in e.args:
             print(erro)
+
+    exit()
