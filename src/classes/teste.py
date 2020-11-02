@@ -99,7 +99,9 @@ class Teste:
             return
         else:
             try:
-                limite = sp.limit(F"{self.resolver_fatorial(an1)}/{self.resolver_fatorial(an)}", self.n, self.infinity)
+                limite = sp.limit(
+                    F"{self.resolver_fatorial(an1)}/{self.resolver_fatorial(an)}", self.n, self.infinity
+                )
             except ValueError as e:
                 print("Erro:", e)
                 return
@@ -143,9 +145,9 @@ class Teste:
             pass
 
         try:
-            geometrico = self.is_geometrico(
-                (re.findall(r"\d+\/?\d*", (re.findall(r"\(\s*\d+\s*\/?\s*\d*\s*\)?\s*\*{2}\s*n{1}", funcao))[0]))[0]
-            )
+            geometrico = self.is_geometrico((re.findall(
+                    r"\d+\/?\d*", (re.findall(r"\(\s*\d+\s*\/?\s*\d*\s*\)?\s*\*{2}\s*n{1}", funcao))[0]
+                    ))[0])
             if geometrico:
                 return geometrico
         except IndexError:

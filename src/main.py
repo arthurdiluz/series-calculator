@@ -1,4 +1,4 @@
-from src.classes.teste import Teste
+from classes.teste import Teste
 
 if __name__ == '__main__':
     print("[1] Teste da Integral")
